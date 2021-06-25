@@ -1,0 +1,8 @@
+The program is an implementation of the Graph Sparsificaiton algorithm proposed in the attached paper.
+
+In order to build the program just call make.
+
+In order to run the program type in the command line %SpLap <X> <n>
+
+, where X is the Laplacian matrix of the graph and n is the dimension of the Laplacian matrix.
+
