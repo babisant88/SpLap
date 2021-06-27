@@ -6,7 +6,7 @@
  */
 
 #include <iostream>
-//#include "../hpp/aux.hpp"
+#include "../hpp/aux.hpp"
 #include "../hpp/graph.hpp"
 #include "../hpp/Sparsify.hpp"
 #include "../hpp/load_input.hpp"

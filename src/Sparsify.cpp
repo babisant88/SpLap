@@ -8,7 +8,7 @@
 #include <cmath>
 #include <iostream>
 
-//#include "../hpp/aux.hpp"
+#include "../hpp/aux.hpp"
 #include "../hpp/graph.hpp"
 #include "../hpp/pinv.hpp"
 #include "../hpp/Sparsify.hpp"

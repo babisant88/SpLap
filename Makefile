@@ -42,8 +42,8 @@ all: dirs SpLap
 dirs:
 	mkdir -p $(OBJDIR)
 
-SpLap: $(OBJDIR)/graph.o $(OBJDIR)/hist.o $(OBJDIR)/load_input.o $(OBJDIR)/main.o $(OBJDIR)/rand_gen.o $(OBJDIR)/Sparsify.o
-	$(CC) $(OBJDIR)/graph.o $(OBJDIR)/hist.o $(OBJDIR)/load_input.o $(OBJDIR)/main.o $(OBJDIR)/rand_gen.o $(OBJDIR)/Sparsify.o -o SpLap
+SpLap: $(OBJDIR)/graph.o $(OBJDIR)/hist.o $(OBJDIR)/load_input.o $(OBJDIR)/main.o $(OBJDIR)/rand_gen.o $(OBJDIR)/Sparsify.o $(OBJDIR)/aux.o
+	$(CC) $(OBJDIR)/graph.o $(OBJDIR)/hist.o $(OBJDIR)/load_input.o $(OBJDIR)/main.o $(OBJDIR)/rand_gen.o $(OBJDIR)/Sparsify.o $(OBJDIR)/aux.o -o SpLap
 
 $(OBJDIR)/load_input.o: $(SRCDIR)/load_input.cpp
 	$(CC) -c $(SRCDIR)/load_input.cpp $(CFLAGS) -o $(OBJDIR)/load_input.o 
@@ -62,6 +62,9 @@ $(OBJDIR)/rand_gen.o: $(SRCDIR)/rand_gen.cpp
 
 $(OBJDIR)/Sparsify.o: $(SRCDIR)/Sparsify.cpp
 	$(CC) -c $(SRCDIR)/Sparsify.cpp $(CFLAGS) -o $(OBJDIR)/Sparsify.o
+
+$(OBJDIR)/aux.o: $(SRCDIR)/aux.cpp
+	$(CC) -c $(SRCDIR)/aux.cpp $(CFLAGS) -o $(OBJDIR)/aux.o
 
 clean:
 	rm -rf *~ $(SRCDIR)/*~ $(OBJDIR) SpLap

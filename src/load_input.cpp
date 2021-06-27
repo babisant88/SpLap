@@ -9,7 +9,7 @@
 #include <fstream>
 #include <cstring>
 
-//#include "../hpp/aux.hpp"
+#include "../hpp/aux.hpp"
 #include "../hpp/load_input.hpp"
 
 #define dbg 0
