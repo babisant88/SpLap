@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "myhppFiles/aux.hpp"
+#include "../hpp/aux.hpp"
 
 using namespace std;
 
