@@ -11,6 +11,7 @@
 #include "types.hpp"
 
 #include <vector>
+#include <list>
 
 using namespace std;
 
@@ -24,6 +25,9 @@ class graph
 			int num_of_vertices;
 			int num_of_edges;
 
+			/* adj list */
+			list<int> * adj;
+
 			/* set of edges */
 			vector<int> ide;
 			vector<int> vertex0e;
@@ -34,6 +38,8 @@ class graph
 
 			SpMat get_incidence_matrix();
 			SpMat get_laplacian_matrix();
+
+			vector<vector<int>> ConnComp();
 };
 
 #endif /* MYHPPFILES_GRAPH_HPP_ */

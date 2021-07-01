@@ -6,6 +6,8 @@
  */
 
 #include <iostream>
+#include <vector>
+#include <queue>
 
 #include "../hpp/graph.hpp"
 
@@ -16,6 +18,8 @@ graph::graph(MatrixXd& A)
 
 	num_of_vertices = n;
 
+	adj = new list<int>[n];
+
 	int ei = 0;
 
 	for(int row_i=0; row_i<n-1; row_i++)
@@ -24,6 +28,8 @@ graph::graph(MatrixXd& A)
 		{
 			if ( A(row_i, col_i) != 0 )
 			{
+				adj[row_i].push_back( ei );
+
 				ide.push_back( ei++ );
 				vertex0e.push_back( row_i );
 				vertex1e.push_back( col_i );
@@ -39,14 +45,19 @@ graph::graph( int n )
 {
 	num_of_vertices = n;
 	num_of_edges = 0;
+
+	adj = new list<int>[n];
 }
 
 graph::~graph()
 {
+	delete[] adj;
 }
 
 void graph::add_edge(int i, int j, double w)
 {
+	adj[i].push_back( num_of_edges );
+
 	ide.push_back( num_of_edges++ );
 	vertex0e.push_back( i );
 	vertex1e.push_back( j );
@@ -103,4 +114,52 @@ SpMat graph::get_incidence_matrix()
 		cout << "Be careful! B matrix is empty...graph contains 0 edges" << endl;
 
 	return B;
+}
+
+vector<vector<int>> graph::ConnComp()
+{
+	vector<vector<int>> CCs; // a vector with the CCs
+
+	// initialize vertices as not visited
+	vector<bool> visited(num_of_vertices, false);
+
+	queue<int> Q;
+
+	for( int v=0; v < num_of_vertices; v++ )
+	{
+		vector<int> CCi; // the node indices that belong to the i-th CC
+
+		if ( !visited[v] )
+		{
+			/* BF traversal for finding the CCs */
+
+			Q.push(v);
+			visited[v] = true;
+
+			CCi.push_back(v);
+
+			while( !Q.empty() )
+			{
+				int n = Q.front();
+				Q.pop();
+
+				list<int>::iterator iter;
+
+				for( iter = adj[n].begin(); iter != adj[n].end(); ++iter )
+				{
+					if( !visited[vertex1e[*iter]] )
+					{
+						Q.push(vertex1e[*iter]);
+						visited[vertex1e[*iter]] = true;
+
+						CCi.push_back(vertex1e[*iter]);
+					}
+				}
+			}
+
+			CCs.push_back( CCi );
+		}
+	}
+
+	return CCs;
 }
