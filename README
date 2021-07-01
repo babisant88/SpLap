@@ -1,4 +1,4 @@
-The program is an implementation of the Graph Sparsificaiton algorithm proposed in the attached paper.
+The program is an implementation of the Graph Sparsification algorithm proposed in the attached paper.
 
 In order to build the program just call make.
 
