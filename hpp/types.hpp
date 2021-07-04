@@ -16,7 +16,7 @@
 
 using namespace Eigen;
 
-enum _bench_type_ {RC = 1, RLC = 2};
+//enum _matrix_type_ {sparse = 1, dense = 2};
 
 typedef Matrix<double, Dynamic, Dynamic> MatrixXd;
 typedef Matrix<double, Dynamic, 1> VectorXd;

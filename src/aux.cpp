@@ -69,3 +69,16 @@ void printMatrixXdToFile(MatrixXd& X, string filename)
 	myfile.close();
 }
 
+void find(SpMat& B, double * B_x, int * B_i)
+{
+	int nz_i = 0;
+
+	for(int k=0; k<B.outerSize(); ++k)
+		for(SpMat::InnerIterator it(B, k); it; ++it)
+		{
+			B_x[nz_i] = it.value();
+			B_i[nz_i] = it.index(); // inner index
+			nz_i++;
+		}
+}
+

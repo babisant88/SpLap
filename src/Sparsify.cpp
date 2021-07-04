@@ -14,16 +14,18 @@
 #include "../hpp/Sparsify.hpp"
 #include "../hpp/rand_gen.hpp"
 #include "../hpp/hist.hpp"
+#include "../hpp/ApproxReff.hpp"
 
 #include <chrono>
 
 #define dbg 0
 #define rand_smp 0
 #define profile 0
+#define Reffx 1
 
 using namespace std;
 
-void find(SpMat&, double*, int*);
+
 bool check_Cval(double, double, int);
 
 /* Precondition: the input matrix M has to be Symmetric */
@@ -31,7 +33,7 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 {
 	SpMat M_sp;
 
-	double *pe, *Reff;
+	double *pe;
 
 	MatrixXd L, A;
 	MatrixXd pinv_L; // the pseudo-inverse of the Laplacian matrix
@@ -79,7 +81,6 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 	A_grph = new graph(A);
 
 	/* Find the Connected Components of graph A_grph */
-
 	vector<vector<int>> CCs = A_grph->ConnComp();
 
 #if dbg
@@ -91,12 +92,16 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 	}
 #endif
 
+	/* initialize the resulting graph (hopefully sparse) */
 	graph * H_grph = new graph(n);
 
+
+	/* loop over the CCs */
 	for( uint CC_i=0; CC_i<CCs.size(); ++CC_i )
 	{
 		uint CCi_n = CCs[CC_i].size(); // number of nodes in CCi
 
+		/* Extract the Laplacian matrix of the i-th Connected Component (CCi) */
 		MatrixXd CCi_L_tmp(CCi_n,n);
 
 		for( uint v_i=0; v_i<CCi_n; ++v_i )
@@ -110,6 +115,9 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 #if dbg
 		printMatrixXd(CCi_L);
 #endif
+
+		/* mapping between the edges of the initial graph and
+		 * the edges of the i-th Connected Component */
 
 		vector<int> edge_map;
 
@@ -133,15 +141,20 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 		auto start = chrono::high_resolution_clock::now();
 #endif
 
+#if !Reffx
 		/* Compute L^(+) */
 		pinv_L = pinv<MatrixXd>(CCi_L);
+#endif
 
 #if dbg
 		cout << "L^(+) = " << endl;
 		printMatrixXd(pinv_L);
 #endif
 
-		Reff = new double[CCi_grph->num_of_edges];
+#if Reffx
+		double *Reff = ApproxReff(CCi_grph, 0.1);
+#else
+		double *Reff = new double[CCi_grph->num_of_edges];
 
 		SpMat B = CCi_grph->get_incidence_matrix();
 
@@ -162,6 +175,8 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 		delete[] B_x;
 		delete[] B_i;
 
+#endif
+
 #if profile
 		auto finish = chrono::high_resolution_clock::now();
 		chrono::duration<double> elapsed = finish - start;
@@ -179,7 +194,6 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 
 		/* define a PMF over the set of edges as follows: */
 		/* for each e: p(e) = (w(e)*Reff(e))/sum[for each e: w(e)*Reff(e)] */
-
 		double sum = 0.0;
 		for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
 			sum += ( CCi_grph->we[e_i] * Reff[e_i] );
@@ -200,17 +214,11 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 
 		delete[] Reff;
 
-		const double C = 0.1;
+		double C = 0.1;
 
-		bool valid_Cval = check_Cval(epsilon, C, n);
-
-		cout << "valid_Cval = " << valid_Cval << endl;
-
-		if ( !valid_Cval )
-		{
-			cout << "C = " << C << " is an unacceptable value" << endl;
-			exit(-1);
-		}
+		/* loop until you find a valid value for C */
+		while( !check_Cval(epsilon, C, n) )
+			C /= 2;
 
 		/* number of Monte Carlo trials */
 		double q = ( 9*(C*C)*n*log(n) )/( epsilon*epsilon );
@@ -244,11 +252,11 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 			cout << "hist_occ[" << e_i << "] = " << hist_occ[e_i] << endl;
 #endif
 
-		double *H_edges_wght = new double[CCi_grph->num_of_edges];
+		double *H_edges_w = new double[CCi_grph->num_of_edges];
 
 		/* set the weights of edges to be inserted in H_grph */
 		for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
-			H_edges_wght[e_i] = ( CCi_grph->we[e_i]*hist_occ[e_i] )/( ceil(q)*pe[e_i] );
+			H_edges_w[e_i] = ( CCi_grph->we[e_i]*hist_occ[e_i] )/( ceil(q)*pe[e_i] );
 
 		delete[] pe;
 		delete[] hist_occ;
@@ -259,8 +267,8 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 
 		/* add to H_grph the selected edges (those edges that have non-zero weight) */
 		for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
-			if( H_edges_wght[e_i] != 0 )
-				H_grph->add_edge( CCi_grph->vertex0e[edge_map[e_i]], CCi_grph->vertex1e[edge_map[e_i]], H_edges_wght[edge_map[e_i]] );
+			if( H_edges_w[e_i] != 0 )
+				H_grph->add_edge( CCi_grph->vertex0e[edge_map[e_i]], CCi_grph->vertex1e[edge_map[e_i]], H_edges_w[edge_map[e_i]] );
 
 #if profile
 		finish = chrono::high_resolution_clock::now();
@@ -268,11 +276,11 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 		cout << "time to build H_grph: " << elapsed.count() << endl;
 #endif
 
-		delete[] H_edges_wght;
+		delete[] H_edges_w;
 	}
 
 	SpMat H_lpc;
-	H_lpc = H_grph->get_laplacian_matrix();
+	H_lpc = H_grph->get_laplacian_matrix_sp();
 
 	/* MATLAB: M_sp = sparse(diag(res_to_grd)) + H_lpc; */
 	M_sp = res_to_grd.asDiagonal();
@@ -282,19 +290,6 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 	delete H_grph;
 
 	return M_sp;
-}
-
-void find(SpMat& B, double * B_x, int * B_i)
-{
-	int nz_i = 0;
-
-	for(int k=0; k<B.outerSize(); ++k)
-		for(SpMat::InnerIterator it(B, k); it; ++it)
-		{
-			B_x[nz_i] = it.value();
-			B_i[nz_i] = it.index(); // inner index
-			nz_i++;
-		}
 }
 
 bool check_Cval(double epsilon, double C, int n)

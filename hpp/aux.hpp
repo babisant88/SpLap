@@ -16,4 +16,6 @@ void printSpMat(SpMat &);
 void printVectorXdToFile(VectorXd&, std::string);
 void printMatrixXdToFile(MatrixXd&, std::string);
 
+void find(SpMat&, double*, int*);
+
 #endif /* MYHPPFILES_AUX_HPP_ */

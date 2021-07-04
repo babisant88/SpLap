@@ -41,6 +41,8 @@ graph::graph(MatrixXd& A)
 	num_of_edges = ei;
 }
 
+
+
 graph::graph( int n )
 {
 	num_of_vertices = n;
@@ -49,10 +51,14 @@ graph::graph( int n )
 	adj = new list<int>[n];
 }
 
+
+
 graph::~graph()
 {
 	delete[] adj;
 }
+
+
 
 void graph::add_edge(int i, int j, double w)
 {
@@ -64,7 +70,9 @@ void graph::add_edge(int i, int j, double w)
 	we.push_back( w );
 }
 
-SpMat graph::get_laplacian_matrix()
+
+
+SpMat graph::get_laplacian_matrix_sp()
 {
 	SpMat L(this->num_of_vertices, this->num_of_vertices);
 
@@ -93,6 +101,37 @@ SpMat graph::get_laplacian_matrix()
 
 	return L;
 }
+
+
+
+MatrixXd graph::get_laplacian_matrix_d()
+{
+	MatrixXd L = MatrixXd::Zero(num_of_vertices, num_of_vertices);
+
+	if ( num_of_edges != 0 )
+	{
+		for( int e_i=0; e_i<num_of_edges; ++e_i )
+		{
+			L(vertex0e[e_i], vertex1e[e_i]) = -we[e_i];
+			L(vertex1e[e_i], vertex0e[e_i]) = -we[e_i];
+		}
+
+		for( int v_i=0; v_i<num_of_vertices; ++v_i )
+		{
+			double row_sum = 0;
+			for( int v_j=0; v_j<num_of_vertices; ++v_j )
+				row_sum += (-L(v_i,v_j));
+
+			L(v_i,v_i) = row_sum;
+		}
+	}
+	else
+		cout << "Be careful! L matrix is empty...graph contains 0 edges" << endl;
+
+	return L;
+}
+
+
 
 SpMat graph::get_incidence_matrix()
 {

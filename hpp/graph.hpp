@@ -37,7 +37,8 @@ class graph
 			void add_edge(int, int, double);
 
 			SpMat get_incidence_matrix();
-			SpMat get_laplacian_matrix();
+			SpMat get_laplacian_matrix_sp();
+			MatrixXd get_laplacian_matrix_d();
 
 			vector<vector<int>> ConnComp();
 };
