@@ -11,10 +11,10 @@
 
 #include "../hpp/graph.hpp"
 
-// initialize the graph with its adjacency matrix
-graph::graph(MatrixXd& A)
+// initialize the graph with its Laplacian matrix
+graph::graph(MatrixXd& L)
 {
-	int n = A.rows();
+	int n = L.rows();
 
 	num_of_vertices = n;
 
@@ -26,14 +26,14 @@ graph::graph(MatrixXd& A)
 	{
 		for(int col_i=row_i+1; col_i<n; col_i++)
 		{
-			if ( A(row_i, col_i) != 0 )
+			if ( L(row_i, col_i) != 0 )
 			{
 				adj[row_i].push_back( ei );
 
 				ide.push_back( ei++ );
 				vertex0e.push_back( row_i );
 				vertex1e.push_back( col_i );
-				we.push_back( A(row_i, col_i) );
+				we.push_back( -L(row_i, col_i) );
 			}
 		}
 	}

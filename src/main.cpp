@@ -60,5 +60,5 @@ int main(int argc, char *argv[])
 
 	cout << "Sparsity ratio of X_sp: " << 1.0-((double)X_sp.nonZeros()/(n*n)) << endl;
 
-//	printSpMatToFile(X_sp, "X_sp.dat");
+	printSpMat( X_sp );
 }

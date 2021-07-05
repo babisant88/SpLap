@@ -21,7 +21,7 @@
 #define dbg 0
 #define rand_smp 0
 #define profile 0
-#define Reffx 1
+#define Reffx 0
 
 using namespace std;
 
@@ -78,7 +78,7 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 #endif
 
 	/* MATLAB: A_grph = graph(A); */
-	A_grph = new graph(A);
+	A_grph = new graph(L);
 
 	/* Find the Connected Components of graph A_grph */
 	vector<vector<int>> CCs = A_grph->ConnComp();
@@ -95,11 +95,12 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 	/* initialize the resulting graph (hopefully sparse) */
 	graph * H_grph = new graph(n);
 
-
 	/* loop over the CCs */
 	for( uint CC_i=0; CC_i<CCs.size(); ++CC_i )
 	{
 		uint CCi_n = CCs[CC_i].size(); // number of nodes in CCi
+
+		epsilon = 1/sqrt((double)CCi_n);
 
 		/* Extract the Laplacian matrix of the i-th Connected Component (CCi) */
 		MatrixXd CCi_L_tmp(CCi_n,n);
@@ -208,20 +209,20 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 		for( int pe_i=0; pe_i<CCi_grph->num_of_edges; ++pe_i )
 			sum += pe[pe_i];
 
-		cout << "n = " << n << endl;
+		cout << "CCi_n = " << CCi_n << endl;
 		cout << "sum[pe] = " << sum << endl;
 #endif
 
 		delete[] Reff;
 
-		double C = 0.1;
+		double C = 1.0;
 
 		/* loop until you find a valid value for C */
-		while( !check_Cval(epsilon, C, n) )
+		while( !check_Cval(epsilon, C, CCi_n) )
 			C /= 2;
 
 		/* number of Monte Carlo trials */
-		double q = ( 9*(C*C)*n*log(n) )/( epsilon*epsilon );
+		double q = ( 9*(C*C)*CCi_n*log(CCi_n) )/( epsilon*epsilon );
 
 #if dbg
 		cout << "q = " << (int)ceil(q) << endl;
@@ -268,13 +269,20 @@ SpMat Sparsify(MatrixXd& M, int n, double epsilon)
 		/* add to H_grph the selected edges (those edges that have non-zero weight) */
 		for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
 			if( H_edges_w[e_i] != 0 )
-				H_grph->add_edge( CCi_grph->vertex0e[edge_map[e_i]], CCi_grph->vertex1e[edge_map[e_i]], H_edges_w[edge_map[e_i]] );
+				H_grph->add_edge( A_grph->vertex0e[edge_map[e_i]], A_grph->vertex1e[edge_map[e_i]], H_edges_w[e_i] );
+
+#if dbg
+		SpMat H_lpc = H_grph->get_laplacian_matrix_sp();
+		printSpMat( H_lpc );
+#endif
 
 #if profile
 		finish = chrono::high_resolution_clock::now();
 		elapsed = finish - start;
 		cout << "time to build H_grph: " << elapsed.count() << endl;
 #endif
+
+		delete CCi_grph;
 
 		delete[] H_edges_w;
 	}
@@ -299,14 +307,16 @@ bool check_Cval(double epsilon, double C, int n)
 
 	int M = n-1;
 
-	S = C * sqrt( (epsilon*epsilon) * (( log( ( 9*(C*C)*n*log(n) )/(epsilon*epsilon) ) * ( M ) )/( 9*(C*C)*n*log(n) )) );
+	double _log_ = log( ( 9*(C*C)*n*log(n) )/(epsilon*epsilon) );
+
+	S = C * sqrt( (epsilon*epsilon) * (( _log_  * ( M ) )/( 9*(C*C)*n*log(n) )) );
 
 #if dbg
 	cout << "epsilon = " << epsilon << endl;
 	cout << "S = " << S << endl;
 #endif
 
-	if ( S <= epsilon/2 )
+	if ( (_log_ >= 0) && ( S <= epsilon/2 ) )
 	    valid = true;
 	else
 	    valid = false;
