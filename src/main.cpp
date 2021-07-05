@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	start = chrono::high_resolution_clock::now();
 #endif
 
-	X_sp = Sparsify(X, n, (double)(1/sqrt(n)));
+	X_sp = Sparsify_top(X, n);
 
 #if profile
 	finish = chrono::high_resolution_clock::now();

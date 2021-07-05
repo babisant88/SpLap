@@ -10,6 +10,7 @@
 
 #include "types.hpp"
 
-SpMat Sparsify(MatrixXd &, int, double);
+SpMat Sparsify_top(MatrixXd &, int);
+double* Sparsify(MatrixXd &, int, graph*&);
 
 #endif /* MYHPPFILES_SPARSIFY_HPP_ */
