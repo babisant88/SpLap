@@ -1,6 +1,7 @@
 The program is an implementation of the Graph Sparsification algorithm proposed in the attached paper.
 
-In order to build the program just call make.
+Make sure that you have already installed in your system the Eigen library (https://eigen.tuxfamily.org/index.php?title=Main_Page).
+In order to build the program just run make.
 
 In order to run the program type in the command line %SpLap <X> <n>
 
