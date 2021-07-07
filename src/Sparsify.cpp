@@ -38,7 +38,7 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 
 	graph * A_grph;
 
-	/* MATLAB: A = abs(diag(diag(M)) - M); */
+	/* A = abs(diag(diag(M)) - M); */
 	A = M.diagonal().asDiagonal(); // A is the Adjacency matrix of A_grph
 	A = A - M;
 	A = A.cwiseAbs();
@@ -48,7 +48,7 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 	printMatrixXd(A);
 #endif
 
-	/* MATLAB: D = sum(A); */
+	/* D = sum(A); */
 	D = A.rowwise().sum(); // D is the Degree matrix of A_grph
 
 #if dbg
@@ -56,7 +56,7 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 	printVectorXd(D);
 #endif
 
-	/* MATLAB: res_to_grd = diag(M) - D'; */
+	/* res_to_grd = diag(M) - D'; */
 	res_to_grd = M.diagonal();
 	res_to_grd = res_to_grd - D;
 
@@ -65,7 +65,7 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 	printVectorXd(res_to_grd);
 #endif
 
-	/* MATLAB: L = diag(D) - A; */
+	/* L = diag(D) - A; */
 	L = D.asDiagonal(); // L is the Laplacian matrix of A_grph
 	L = L - A;
 
@@ -74,10 +74,10 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 	printMatrixXd(L);
 #endif
 
-	/* MATLAB: A_grph = graph(A); */
+	/* A_grph = graph(A); */
 	A_grph = new graph(L);
 
-	/* Find the Connected Components of graph A_grph */
+	/* Find the Connected Components (CCs) of graph A_grph */
 	vector<vector<int>> CCs = A_grph->ConnComp();
 
 #if dbg
@@ -142,9 +142,9 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 				H_grph->add_edge( A_grph->vertex0e[edge_map[e_i]], A_grph->vertex1e[edge_map[e_i]], H_edges_w[e_i] );
 
 #if profile
-	finish = chrono::high_resolution_clock::now();
-	elapsed = finish - start;
-	cout << "time to build H_grph: " << elapsed.count() << endl;
+		finish = chrono::high_resolution_clock::now();
+		elapsed = finish - start;
+		cout << "time to build H_grph: " << elapsed.count() << endl;
 #endif
 
 		delete CCi_grph;
@@ -181,7 +181,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph)
 #endif
 
 #if !Reffx
-		/* Compute L^(+) */
+	/* Compute L^(+) */
 	pinv_L = pinv<MatrixXd>(CCi_L);
 #endif
 
