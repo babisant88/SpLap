@@ -86,7 +86,7 @@ SpMat graph::get_laplacian_matrix_sp()
 			nz.push_back(T(vertex1e[ei], vertex0e[ei], -we[ei]));
 		}
 
-		double * row_sums = new double[num_of_vertices]();
+		double *row_sums = new double[num_of_vertices]();
 
 		for( int e_i=0; e_i<2*num_of_edges; ++e_i )
 			row_sums[nz[e_i].row()] += abs( nz[e_i].value() );
@@ -95,6 +95,7 @@ SpMat graph::get_laplacian_matrix_sp()
 			nz.push_back( T(r_i, r_i, row_sums[r_i]) );
 
 		L.setFromTriplets(nz.begin(), nz.end());
+		delete[] row_sums;
 	}
 	else
 		cout << "Be careful! L matrix is empty...graph contains 0 edges" << endl;

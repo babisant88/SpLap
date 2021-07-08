@@ -20,7 +20,7 @@
 #define dbg 0
 #define rand_smp 0
 #define profile 0
-#define Reffx 0
+#define Reffx 1
 
 using namespace std;
 

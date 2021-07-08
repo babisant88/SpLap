@@ -8,6 +8,7 @@
 #include "../hpp/ApproxReff.hpp"
 #include <iostream>
 #include <cmath>
+#include "../hpp/iter_solver.hpp"
 
 #define dbg 0
 
@@ -110,12 +111,16 @@ double *ApproxReff(graph *A_grph, double delta)
 
 	MatrixXd Z(k,A_grph->num_of_vertices);
 
+	//VectorXd x = VectorXd::Zero(Lg.rows());
+
 	/* Z(i,:) = LapSolve(L, Y(i,:)) */
 	for (int row_i=0; row_i<Y.rows(); ++row_i)
 	{
 		VectorXd b = Y.row(row_i);
-		//Z.row(row_i) = solver.solve(b);
 		Z.row(row_i) = cg.solve(b);
+
+		//my_cg<MatrixXd>( Lg, b, x, 1e-6, Lg.rows() );
+		//Z.row(row_i) = x;
 	}
 
 	/* Reff(e) = ||Z * ( e(i) - e(j) )||^2 */
