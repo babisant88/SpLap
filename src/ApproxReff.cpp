@@ -104,10 +104,10 @@ double *ApproxReff(graph *A_grph, double delta)
 
 	LLT<MatrixXd> solver;
 
-	solver.compute(Lg);
+	solver.compute(Lg); // Lg is expected to be dence...that's why we want its sparsification
 
-	ConjugateGradient<MatrixXd, Lower|Upper> cg;
-	cg.compute(Lg);
+//	ConjugateGradient<MatrixXd, Lower|Upper> cg;
+//	cg.compute(Lg);
 
 	MatrixXd Z(k,A_grph->num_of_vertices);
 
@@ -117,7 +117,9 @@ double *ApproxReff(graph *A_grph, double delta)
 	for (int row_i=0; row_i<Y.rows(); ++row_i)
 	{
 		VectorXd b = Y.row(row_i);
-		Z.row(row_i) = cg.solve(b);
+//		Z.row(row_i) = cg.solve(b);
+
+		Z.row(row_i) = solver.solve(b);
 
 		//my_cg<MatrixXd>( Lg, b, x, 1e-6, Lg.rows() );
 		//Z.row(row_i) = x;
@@ -132,6 +134,3 @@ double *ApproxReff(graph *A_grph, double delta)
 
 	return Reff;
 }
-
-
-

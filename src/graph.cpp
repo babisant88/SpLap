@@ -156,6 +156,8 @@ SpMat graph::get_incidence_matrix()
 	return B;
 }
 
+
+
 vector<vector<int>> graph::ConnComp()
 {
 	vector<vector<int>> CCs; // a vector with the CCs
@@ -202,4 +204,65 @@ vector<vector<int>> graph::ConnComp()
 	}
 
 	return CCs;
+}
+
+
+
+/* Kruskal's MST algorithm */
+vector<int> graph::MST()
+{
+	vector<int> MLSTedges;
+
+	vector<int> parent(num_of_vertices);
+
+	vector<int> cluster_size(num_of_vertices, 0);
+
+	for( int v_i=0; v_i<num_of_vertices; ++v_i )
+		parent[v_i] = v_i;
+
+	/* Sort all edges into ascending
+	 * order by weight w */
+	pair<double, int> e_w_pairs[num_of_edges];
+
+	for( int e_i = 0; e_i < num_of_edges; e_i++ )
+    {
+		e_w_pairs[e_i].first = we[e_i];
+		e_w_pairs[e_i].second = e_i;
+    }
+
+	sort(e_w_pairs, e_w_pairs + num_of_edges);
+
+	/* for each (u,v) taken from the sorted
+	 * list of edges */
+	for( int e_i = 0; e_i < num_of_edges; e_i++ )
+	{
+		int e_j = e_w_pairs[e_i].second;
+
+		int v_i = vertex0e[e_j];
+		int v_j = vertex1e[e_j];
+
+		while( parent[v_i] != v_i ) // FIND_SET(v_i): See whether v_i and v_j fall into the same cluster of nodes
+			v_i = parent[v_i];
+
+		while( parent[v_j] != v_j ) // FIND_SET(v_j)
+			v_j = parent[v_j];
+
+		if( v_i != v_j )
+		{
+			MLSTedges.push_back(e_j);
+
+			if( cluster_size[v_i] >= cluster_size[v_j] )
+			{
+				parent[v_j] = v_i; // union(v_i,v_j): Unify the cluster of node v_i belong to with the cluster of nodes v_j belogs to
+				cluster_size[v_i] += ( cluster_size[v_j] + 1);
+			}
+			else
+			{
+				parent[v_i] = v_j; // union(v_j,v_i)
+				cluster_size[v_j] += ( cluster_size[v_i] + 1);
+			}
+		}
+	}
+
+	return MLSTedges;
 }

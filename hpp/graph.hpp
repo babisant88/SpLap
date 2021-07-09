@@ -11,6 +11,7 @@
 #include "types.hpp"
 
 #include <vector>
+#include <set>
 #include <list>
 
 using namespace std;
@@ -41,6 +42,7 @@ class graph
 			MatrixXd get_laplacian_matrix_d();
 
 			vector<vector<int>> ConnComp();
+			vector<int> MST(); // Minimum Spanning Tree (MST)
 };
 
 #endif /* MYHPPFILES_GRAPH_HPP_ */

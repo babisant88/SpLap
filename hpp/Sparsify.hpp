@@ -11,6 +11,6 @@
 #include "types.hpp"
 
 SpMat Sparsify_top(MatrixXd &, int);
-double* Sparsify(MatrixXd &, int, graph*&);
+double* Sparsify(MatrixXd &, int, graph*&, bool);
 
 #endif /* MYHPPFILES_SPARSIFY_HPP_ */

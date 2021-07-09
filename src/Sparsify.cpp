@@ -17,15 +17,15 @@
 #include "../hpp/hist.hpp"
 #include "../hpp/ApproxReff.hpp"
 
-#define dbg 0
-#define rand_smp 0
-#define profile 0
-#define Reffx 1
+#define dbg 0 // enable debugging info
+//#define rand_smp 0 // enable random sampling (! Deprecated Code !)
+#define profile 0 // endalbe profiling info
+#define Reffx 0 // enable the approximation of the effective resistances
 
 using namespace std;
 
-
 bool check_Cval(double, double, int);
+
 
 
 SpMat Sparsify_top(MatrixXd& M, int n)
@@ -134,7 +134,12 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 
 		graph *CCi_grph = NULL;
 
-		double *H_edges_w = Sparsify(CCi_L, CCi_n, CCi_grph);
+		double *H_edges_w = Sparsify(CCi_L, CCi_n, CCi_grph, true);
+
+#if dbg
+		for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
+			cout << "H_edges_w[" << e_i << "] = " << H_edges_w[e_i] << endl;
+#endif
 
 		/* add to H_grph the selected edges (those edges that have non-zero weight) */
 		for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
@@ -166,7 +171,7 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 
 
 
-double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph)
+double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 {
 	double *pe;
 
@@ -191,7 +196,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph)
 #endif
 
 #if Reffx
-	double *Reff = ApproxReff(CCi_grph, 0.1);
+	double *Reff = ApproxReff(CCi_grph, 0.01);
 #else
 	double *Reff = new double[CCi_grph->num_of_edges];
 
@@ -251,10 +256,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph)
 	cout << "sum[pe] = " << sum << endl;
 #endif
 
-	delete[] Reff;
-
 	double C = 1.0;
-
 	/* loop until you find a valid value for C */
 	while( !check_Cval(epsilon, C, CCi_n) )
 		C /= 2;
@@ -262,11 +264,40 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph)
 	/* number of Monte Carlo trials */
 	double q = ( 9*(C*C)*CCi_n*log(CCi_n) )/( epsilon*epsilon );
 
+	vector<int> MLSTedges;
+
+	if ( MLST_en )
+	{
+		/* Compute the "Maximum Likelihood" Spanning Tree (MLST) to  */
+		/* avoid a disjoint graph as a result after sparsification */
+		graph *CCi_likelihood_grph = new graph(CCi_L);
+
+		for( int e_i; e_i<CCi_likelihood_grph->num_of_edges; ++e_i )
+			CCi_likelihood_grph->we[e_i] = 1.0/pe[e_i];
+
+		MLSTedges = CCi_likelihood_grph->MST(); // MLSTedges are the edges that belong to MLST
+
+		delete CCi_likelihood_grph;
+
+#if dbg
+	for( std::vector<int>::iterator e_it = MLSTedges.begin(); e_it != MLSTedges.end(); e_it++ )
+		cout << (*e_it) << " ";
+
+	cout << endl;
+#endif
+
+		/* Subtrack from q the number of edges belonging to the MLST */
+		q -= (MLSTedges.size()-1);
+	}
+
 #if dbg
 	cout << "q = " << (int)ceil(q) << endl;
 #endif
 
+	delete[] Reff;
+
 #if rand_smp
+/*	! Deprecated Code !
 	int * H_edges_i;
 
 	H_edges_i = new int[(int)ceil(q)];
@@ -277,28 +308,41 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph)
 	hist( H_edges_i, hist_occ, (int)ceil(q) );
 
 	delete[] H_edges_i;
+*/
 #else
+/*	! Deprecated Code !
 
-	/* how many times an edge has been chosen? */
-	int * hist_occ = new int[CCi_grph->num_of_edges];
+	int * hist_occ = new int[CCi_grph->num_of_edges]();
 
 	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
-		hist_occ[e_i] = ( int )round( pe[e_i] * q );
+		hist_occ[e_i] = ((int)round(pe[e_i] * q) > 0);
+
+	for( uint e_i=0; e_i < MLSTedges.size(); ++e_i )
+		hist_occ[MLSTedges[e_i]] = 1;
+*/
 #endif
 
 #if dbg
+/*
+	! Deprecated Code !
 	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
 		cout << "hist_occ[" << e_i << "] = " << hist_occ[e_i] << endl;
+*/
 #endif
 
-	double *H_edges_w = new double[CCi_grph->num_of_edges];
+	double *H_edges_w = new double[CCi_grph->num_of_edges]();
 
-	/* set the weights of edges to be inserted in H_grph */
+	/* Pick the edges to be inserted in H_grph */
 	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
-		H_edges_w[e_i] = ( CCi_grph->we[e_i]*hist_occ[e_i] )/( ceil(q)*pe[e_i] );
+		/* I expect the condition below to return 1 in case it is true and 0 otherwise */
+		H_edges_w[e_i] = CCi_grph->we[e_i] * ((int)round(pe[e_i] * q) > 0);
+
+	/* add the MLST edges for sure (recall: to avoid disjoint graph)*/
+	for( uint e_i=0; e_i < MLSTedges.size(); ++e_i )
+		H_edges_w[MLSTedges[e_i]] = CCi_grph->we[e_i];
 
 	delete[] pe;
-	delete[] hist_occ;
+//	delete[] hist_occ; ! Deprecated Code !
 
 	return H_edges_w;
 }
