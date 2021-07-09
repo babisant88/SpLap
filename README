@@ -1,9 +1,14 @@
-The program is an implementation of the Graph Sparsification algorithm proposed in the attached paper.
+* The program is an implementation of an enhanced version of the Graph Sparsification algorithm proposed in "Graph Sparsification by Effective Resistances" by Spielman & Srivastava (see the attached papers). 
 
-Make sure that you have already installed in your system the Eigen library (https://eigen.tuxfamily.org/index.php?title=Main_Page).
+* We have modified and improved the algorithm of Spielman-Srivastava in two ways (see Algorithm 4 in the attached paper "Graph-Based Sparsification and Synthesis of Dense Matrices in the Reduction of RLC Circuits"). First, since the random sampling of edges might result in a disjoint sparse graph H, we provide the option to initialize H by the "maximum likelihood" spanning tree (MLST) which includes the (n-1) most probable edges that guarantee a connected graph (where n is the number of vertices). Second and more importantly, instead of adding edges to the sparse graph by random trials (which would require significant memory and computational effort), we calculate first the expected times an edge would be selected if random sampling of q trials were performed, via multiplying q with the probability p(i,j) and rounding to the nearest integer (where p(i,j) is the probability of choosing edge (i,j)). Then, we add to H those edges whose expected times to be selected are greater than 0. By doing so, we also remove the randomness from the initial algorithm, and thus the proposed sparsification always results in the same sparse graph.
+
+* If you are interested in using the provided code in your research, please cite the following paper: 
+
+C. Antoniadis, N. Evmorfopoulos and G. Stamoulis, "Graph-Based Sparsification and Synthesis of Dense Matrices in the Reduction of RLC Circuits," in IEEE Transactions on Very Large Scale Integration (VLSI) Systems, vol. 29, no. 3, pp. 580-590, March 2021, doi: 10.1109/TVLSI.2021.3049628.
+
+* Make sure that you have already installed in your system the Eigen library (https://eigen.tuxfamily.org/index.php?title=Main_Page).
 In order to build the program just run make.
 
-In order to run the program type in the command line %SpLap <X> <n>
-
+* In order to run the program type in the command line %SpLap <X> <n>
 , where X is the Laplacian matrix of the graph and n is the dimension of the Laplacian matrix.
 
