@@ -42,7 +42,7 @@ class graph
 			MatrixXd get_laplacian_matrix_d();
 
 			vector<vector<int>> ConnComp();
-			vector<int> MST(); // Minimum Spanning Tree (MST)
+			vector<int> MST(); // "Maximum Likelihood" Spanning Tree (MLST)
 };
 
 #endif /* MYHPPFILES_GRAPH_HPP_ */

@@ -19,6 +19,7 @@ using namespace std;
 
 #define dbg 0
 #define profile 0
+#define reg_test 1
 
 int main(int argc, char *argv[])
 {
@@ -60,5 +61,26 @@ int main(int argc, char *argv[])
 
 	cout << "Sparsity ratio of X_sp: " << 1.0-((double)X_sp.nonZeros()/(n*n)) << endl;
 
-	printSpMat( X_sp );
+#if reg_test
+
+	VectorXd b = VectorXd::Random(n);
+	VectorXd golden_sol, sol, diff;
+
+	LLT<MatrixXd> solver_d;
+	solver_d.compute(X);
+	golden_sol = solver_d.solve(b);
+
+	/* for a fair (due to different solvers (dense/sparse)) comparison,
+	 * convert sparse matrix X_sp to Dense */
+	MatrixXd X_d = MatrixXd(X_sp);
+
+	LLT<MatrixXd> solver_sp;
+	solver_sp.compute(X_d);
+	sol = solver_sp.solve(b);
+
+	diff = sol - golden_sol;
+
+	cout << "relative error = " << (diff.norm())/(golden_sol.norm()) << endl;
+
+#endif
 }

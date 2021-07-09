@@ -129,12 +129,12 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 #endif
 
 #if profile
-		start = chrono::high_resolution_clock::now();
+		auto start = chrono::high_resolution_clock::now();
 #endif
 
 		graph *CCi_grph = NULL;
 
-		double *H_edges_w = Sparsify(CCi_L, CCi_n, CCi_grph, true);
+		double *H_edges_w = Sparsify(CCi_L, CCi_n, CCi_grph, false);
 
 #if dbg
 		for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
@@ -147,8 +147,8 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 				H_grph->add_edge( A_grph->vertex0e[edge_map[e_i]], A_grph->vertex1e[edge_map[e_i]], H_edges_w[e_i] );
 
 #if profile
-		finish = chrono::high_resolution_clock::now();
-		elapsed = finish - start;
+		auto finish = chrono::high_resolution_clock::now();
+		chrono::duration<double> elapsed = finish - start;
 		cout << "time to build H_grph: " << elapsed.count() << endl;
 #endif
 
@@ -159,7 +159,7 @@ SpMat Sparsify_top(MatrixXd& M, int n)
 	SpMat H_lpc;
 	H_lpc = H_grph->get_laplacian_matrix_sp();
 
-	/* MATLAB: M_sp = sparse(diag(res_to_grd)) + H_lpc; */
+	/* M_sp = sparse(diag(res_to_grd)) + H_lpc; */
 	M_sp = res_to_grd.asDiagonal();
 	M_sp += H_lpc;
 
@@ -196,7 +196,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 #endif
 
 #if Reffx
-	double *Reff = ApproxReff(CCi_grph, 0.01);
+	double *Reff = ApproxReff(CCi_grph, 0.1);
 #else
 	double *Reff = new double[CCi_grph->num_of_edges];
 
@@ -261,6 +261,10 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 	while( !check_Cval(epsilon, C, CCi_n) )
 		C /= 2;
 
+#if 1
+	cout << "C = " << C << endl;
+#endif
+
 	/* number of Monte Carlo trials */
 	double q = ( 9*(C*C)*CCi_n*log(CCi_n) )/( epsilon*epsilon );
 
@@ -272,7 +276,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 		/* avoid a disjoint graph as a result after sparsification */
 		graph *CCi_likelihood_grph = new graph(CCi_L);
 
-		for( int e_i; e_i<CCi_likelihood_grph->num_of_edges; ++e_i )
+		for( int e_i = 0; e_i<CCi_likelihood_grph->num_of_edges; ++e_i )
 			CCi_likelihood_grph->we[e_i] = 1.0/pe[e_i];
 
 		MLSTedges = CCi_likelihood_grph->MST(); // MLSTedges are the edges that belong to MLST
