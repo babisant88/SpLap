@@ -205,7 +205,7 @@ double *appxReff(graph *A_grph, double delta)
 	solver.compute(Lg); // Lg is expected to be dence...that's why we want its sparsification
 
 	/*	In case Lg matrix is sparse, I suggest you to try the cg solver
-	 *  (with a suitable prconditioner e.g.. CMG from Koutis, Miller & Peng */
+	 *  (with a suitable preconditioner e.g.. CMG from Koutis, Miller & Peng */
 
 //	ConjugateGradient<MatrixXd, Lower|Upper> cg;
 //	cg.compute(Lg);

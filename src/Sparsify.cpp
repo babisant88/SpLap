@@ -18,7 +18,7 @@
 #include "../hpp/ApproxReff.hpp"
 
 #define dbg 0 // enable debugging info
-#define rand_smp 0 // enable random sampling (! Deprecated Code !)
+#define rand_smp 0 // enable random sampling
 #define profile 0 // endalbe profiling info
 #define Reffx 0 // enable the approximation of the effective resistances
 
@@ -251,6 +251,9 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 		pe[pe_i] = ( CCi_grph->we[pe_i] * Reff[pe_i] )/( sum );
 
 #if dbg
+	for( int pe_i=0; pe_i<CCi_grph->num_of_edges; ++pe_i )
+		cout << "pe[" << pe_i << "] = " << pe[pe_i] << endl;
+
 	sum = 0.0;
 	for( int pe_i=0; pe_i<CCi_grph->num_of_edges; ++pe_i )
 		sum += pe[pe_i];
@@ -307,23 +310,31 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 
 #if rand_smp
 
+/* !!! deprecated !!!
 	int * H_edges_i;
 
 	H_edges_i = new int[(int)ceil(q)];
 
 	rand_gen( CCi_grph->ide, H_edges_i, pe, CCi_grph->num_of_edges, (int)ceil(q) );
 
+#if dbg
+	for( int t_i=0; t_i<(int)ceil(q); ++t_i )
+		cout << "H_edges_i[" << t_i << "] = " << H_edges_i[t_i] << endl;
+#endif
+
 	int * hist_occ = new int[CCi_grph->num_of_edges]();
 	hist( H_edges_i, hist_occ, (int)ceil(q) );
 
-#if dbg
+	delete[] H_edges_i;
+*/
 
+	int * hist_occ = new int[CCi_grph->num_of_edges]();
+	rand_gen( CCi_grph->ide, hist_occ, pe, CCi_grph->num_of_edges, (int)ceil(q) );
+
+#if dbg
 	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
 		cout << "hist_occ[" << e_i << "] = " << hist_occ[e_i] << endl;
-
 #endif
-
-	delete[] H_edges_i;
 
 	/* add the MLST edges for sure (recall: to avoid disjoint graph)*/
 	for( uint e_i=0; e_i < MLSTedges.size(); ++e_i )
