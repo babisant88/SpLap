@@ -33,7 +33,7 @@ void rand_gen( vector<int>& x, int * y, double * pmf, int num_of_edges, int N )
 	/* initialize random seed: */
 	srand ( time(NULL) );
 
-	int * b = new int[num_of_edges+1];
+	int *b = new int[num_of_edges+1];
 
 	for( int n_i=0; n_i<N; ++n_i )
 	{
@@ -66,11 +66,15 @@ void rand_gen( vector<int>& x, int * y, double * pmf, int num_of_edges, int N )
 		y[n_i] = x[index[n_i]-1];
 }
 
+
+
 void cumsum( double * a, int num_of_edges, double * pmf )
 {
 	for( int e_i=1; e_i<num_of_edges+1; ++e_i )
 		a[e_i] = a[e_i-1] + pmf[e_i-1];
 }
+
+
 
 int find( int *intArray, int size, int data )
 {

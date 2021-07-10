@@ -253,7 +253,7 @@ vector<int> graph::MST()
 
 			if( cluster_size[v_i] >= cluster_size[v_j] )
 			{
-				parent[v_j] = v_i; // union(v_i,v_j): Unify the cluster of node v_i belong to with the cluster of nodes v_j belogs to
+				parent[v_j] = v_i; // union(v_i,v_j): Unify the cluster of nodes v_i belongs to with the cluster of nodes v_j belongs to
 				cluster_size[v_i] += ( cluster_size[v_j] + 1);
 			}
 			else

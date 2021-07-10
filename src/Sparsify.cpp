@@ -18,9 +18,9 @@
 #include "../hpp/ApproxReff.hpp"
 
 #define dbg 0 // enable debugging info
-//#define rand_smp 0 // enable random sampling (! Deprecated Code !)
+#define rand_smp 0 // enable random sampling (! Deprecated Code !)
 #define profile 0 // endalbe profiling info
-#define Reffx 1 // enable the approximation of the effective resistances
+#define Reffx 0 // enable the approximation of the effective resistances
 
 using namespace std;
 
@@ -175,7 +175,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 {
 	double *pe;
 
-	double epsilon = 1/sqrt((double)CCi_n);
+	double epsilon = 0.4; //1/sqrt((double)CCi_n);
 
 	MatrixXd pinv_L; // the pseudo-inverse of the Laplacian matrix
 
@@ -264,7 +264,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 	while( !check_Cval(epsilon, C, CCi_n) )
 		C /= 2;
 
-#if 1
+#if dbg
 	cout << "C = " << C << endl;
 #endif
 
@@ -303,8 +303,10 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 
 	delete[] Reff;
 
+	double *H_edges_w = new double[CCi_grph->num_of_edges]();
+
 #if rand_smp
-/*	! Deprecated Code !
+
 	int * H_edges_i;
 
 	H_edges_i = new int[(int)ceil(q)];
@@ -314,30 +316,25 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 	int * hist_occ = new int[CCi_grph->num_of_edges]();
 	hist( H_edges_i, hist_occ, (int)ceil(q) );
 
-	delete[] H_edges_i;
-*/
-#else
-/*	! Deprecated Code !
-
-	int * hist_occ = new int[CCi_grph->num_of_edges]();
-
-	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
-		hist_occ[e_i] = ((int)round(pe[e_i] * q) > 0);
-
-	for( uint e_i=0; e_i < MLSTedges.size(); ++e_i )
-		hist_occ[MLSTedges[e_i]] = 1;
-*/
-#endif
-
 #if dbg
-/*
-	! Deprecated Code !
+
 	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
 		cout << "hist_occ[" << e_i << "] = " << hist_occ[e_i] << endl;
-*/
+
 #endif
 
-	double *H_edges_w = new double[CCi_grph->num_of_edges]();
+	delete[] H_edges_i;
+
+	/* add the MLST edges for sure (recall: to avoid disjoint graph)*/
+	for( uint e_i=0; e_i < MLSTedges.size(); ++e_i )
+		hist_occ[MLSTedges[e_i]] += 1;
+
+	/* set the weights of edges to be inserted in H_grph */
+	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
+		H_edges_w[e_i] = ( CCi_grph->we[e_i]*hist_occ[e_i] )/( ceil(q)*pe[e_i] );
+
+	delete[] hist_occ;
+#else
 
 	/* Pick the edges to be inserted in H_grph */
 	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
@@ -347,9 +344,9 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 	/* add the MLST edges for sure (recall: to avoid disjoint graph)*/
 	for( uint e_i=0; e_i < MLSTedges.size(); ++e_i )
 		H_edges_w[MLSTedges[e_i]] = CCi_grph->we[e_i];
+#endif
 
 	delete[] pe;
-//	delete[] hist_occ; ! Deprecated Code !
 
 	return H_edges_w;
 }
