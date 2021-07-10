@@ -20,7 +20,7 @@
 #define dbg 0 // enable debugging info
 //#define rand_smp 0 // enable random sampling (! Deprecated Code !)
 #define profile 0 // endalbe profiling info
-#define Reffx 0 // enable the approximation of the effective resistances
+#define Reffx 1 // enable the approximation of the effective resistances
 
 using namespace std;
 
@@ -196,7 +196,9 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 #endif
 
 #if Reffx
-	double *Reff = ApproxReff(CCi_grph, 0.1);
+
+	double *Reff = appxReff_mem(CCi_grph, 0.1);
+
 #else
 	double *Reff = new double[CCi_grph->num_of_edges];
 
@@ -234,6 +236,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 		cout << Reff[row_i] << '\t';
 
 	cout << endl << endl;
+
 #endif
 
 	/* define a PMF over the set of edges as follows: */

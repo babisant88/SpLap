@@ -11,6 +11,7 @@
 #include "graph.hpp"
 #include "aux.hpp"
 
-double *ApproxReff(graph *, double);
+double *appxReff_mem(graph *, double);
+double *appxReff(graph *, double);
 
 #endif /* HPP_APPROXREFF_HPP_ */
