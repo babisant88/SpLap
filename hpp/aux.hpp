@@ -15,6 +15,7 @@ void printVectorXd(VectorXd &);
 void printSpMat(SpMat &);
 void printVectorXdToFile(VectorXd&, std::string);
 void printMatrixXdToFile(MatrixXd&, std::string);
+void printIntArrToFile(int* X, int n, std::string filename);
 
 void find(SpMat&, double*, int*);
 

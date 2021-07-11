@@ -175,6 +175,9 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 {
 	double *pe;
 
+	/* error/sparsity trade-off parameter */
+	/* epsilon has to be between 1/sqrt(CCi_n) and 1 */
+	/* larger values of epsilon lead to more sparse but less accurate model */
 	double epsilon = 0.4; //1/sqrt((double)CCi_n);
 
 	MatrixXd pinv_L; // the pseudo-inverse of the Laplacian matrix
@@ -350,7 +353,7 @@ double* Sparsify(MatrixXd& CCi_L, int CCi_n, graph*& CCi_grph, bool MLST_en)
 	/* Pick the edges to be inserted in H_grph */
 	for( int e_i=0; e_i<CCi_grph->num_of_edges; ++e_i )
 		/* I expect the condition below to return 1 in case it is true and 0 otherwise */
-		H_edges_w[e_i] = CCi_grph->we[e_i] * ((int)round(pe[e_i] * q) > 0);
+		H_edges_w[e_i] = CCi_grph->we[e_i] * (( (int)round( pe[e_i]*q ) ) > 0);
 
 	/* add the MLST edges for sure (recall: to avoid disjoint graph)*/
 	for( uint e_i=0; e_i < MLSTedges.size(); ++e_i )

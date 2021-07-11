@@ -23,6 +23,8 @@ void printMatrixXd(MatrixXd& X)
 	cout << endl << endl;
 }
 
+
+
 void printVectorXd(VectorXd& X)
 {
 	for( int row_i=0; row_i<X.rows(); row_i++ )
@@ -30,6 +32,8 @@ void printVectorXd(VectorXd& X)
 
 	cout << endl << endl;
 }
+
+
 
 void printSpMat(SpMat& X)
 {
@@ -39,6 +43,7 @@ void printSpMat(SpMat& X)
 
 	cout << endl << endl;
 }
+
 
 
 void printVectorXdToFile(VectorXd& X, string filename)
@@ -51,6 +56,7 @@ void printVectorXdToFile(VectorXd& X, string filename)
 
 	myfile.close();
 }
+
 
 
 void printMatrixXdToFile(MatrixXd& X, string filename)
@@ -69,6 +75,22 @@ void printMatrixXdToFile(MatrixXd& X, string filename)
 	myfile.close();
 }
 
+
+
+void printIntArrToFile(int* X, int n, string filename)
+{
+	ofstream myfile;
+	myfile.open (filename.c_str());
+
+	for( int i=0; i<n; i++ )
+		myfile << X[i] << '\t';
+
+
+	myfile.close();
+}
+
+
+
 void find(SpMat& B, double * B_x, int * B_i)
 {
 	int nz_i = 0;
@@ -81,4 +103,3 @@ void find(SpMat& B, double * B_x, int * B_i)
 			nz_i++;
 		}
 }
-
